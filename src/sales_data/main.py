@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from sales_data.utils import config
 from sales_data.utils.spark import get_spark_session
 from sales_data.ingestion.bronze_ingestion import ingest_datasets
+from sales_data.transformations.silver_transform import run_silver_transformation
 from sales_data.validation.data_quality import run_data_quality_checks
 from sales_data.utils.logger import setup_logger
 
@@ -92,6 +93,15 @@ def main(argv: Sequence[str] | None = None):
                 strict=args.strict_data_quality,
                 quarantined_call_count=quarantined_call_count,
             )
+
+        elif args.job == "silver":
+            logger.info("Starting Silver job.")
+
+            run_silver_transformation(
+                args.input_path or f"{args.base_path.rstrip('/')}/output/bronze",
+                args.output_path or f"{args.base_path.rstrip('/')}/output/silver",
+            )
+
         logger.info("%s job completed successfully.", args.job)
 
     except Exception:
