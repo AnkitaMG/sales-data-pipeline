@@ -5,6 +5,7 @@ from sales_data.utils import config
 from sales_data.utils.spark import get_spark_session
 from sales_data.ingestion.bronze_ingestion import ingest_datasets
 from sales_data.transformations.silver_transform import run_silver_transformation
+from sales_data.transformations.gold_transform import run_gold_transformation
 from sales_data.validation.data_quality import run_data_quality_checks
 from sales_data.utils.logger import setup_logger
 
@@ -100,6 +101,14 @@ def main(argv: Sequence[str] | None = None):
             run_silver_transformation(
                 args.input_path or f"{args.base_path.rstrip('/')}/output/bronze",
                 args.output_path or f"{args.base_path.rstrip('/')}/output/silver",
+            )
+
+        elif args.job == "gold":
+            logger.info("Starting Gold job.")
+
+            run_gold_transformation(
+                args.input_path or f"{args.base_path.rstrip('/')}/output/silver",
+                args.output_path or f"{args.base_path.rstrip('/')}/output/gold",
             )
 
         logger.info("%s job completed successfully.", args.job)
