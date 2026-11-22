@@ -1,4 +1,5 @@
 """Central configuration for pipeline common paths."""
+
 BASE_PATH = "/Volumes/main/default/sales"
 
 # Raw input
