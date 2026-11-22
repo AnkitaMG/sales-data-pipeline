@@ -73,12 +73,21 @@ def create_marketing_address_info(
 
     address_parts = F.split(F.col("address"), r"\s*,\s*")
 
-    return marketing.select(
-        F.when(F.size(address_parts) == 3, address_parts.getItem(0)).alias("street"),
-        F.when(F.size(address_parts) == 3, address_parts.getItem(1)).alias(
-            "house_number"
-        ),
-        F.when(F.size(address_parts) == 3, address_parts.getItem(2)).alias("zip_code"),
+    # Keep only complete, three-part addresses. Returning null placeholders for malformed or missing addresses creates blank rows in the CSV output.
+    valid_marketing = marketing.filter(
+        (F.size(address_parts) == 3)
+        & address_parts.getItem(0).isNotNull()
+        & (F.trim(address_parts.getItem(0)) != "")
+        & address_parts.getItem(1).isNotNull()
+        & (F.trim(address_parts.getItem(1)) != "")
+        & address_parts.getItem(2).isNotNull()
+        & (F.trim(address_parts.getItem(2)) != "")
+    )
+
+    return valid_marketing.select(
+        address_parts.getItem(0).alias("street"),
+        address_parts.getItem(1).alias("house_number"),
+        address_parts.getItem(2).alias("zip_code"),
     )
 
 
