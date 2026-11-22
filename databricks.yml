@@ -1,0 +1,53 @@
+bundle:
+  name: sales-data-pipeline
+
+artifacts:
+  default:
+    type: whl
+    build: poetry build
+    path: .
+
+include:
+  - resources/*.yml
+
+variables:
+  bronze_input_path:
+    description: Bronze CSV input directory
+    default: /Volumes/main/default/sales/input
+  bronze_output_path:
+    description: Bronze Parquet output directory
+    default: /Volumes/main/default/sales/output/bronze
+  bronze_errors_path:
+    description: Bronze quarantine output directory
+    default: /Volumes/main/default/sales/output/errors
+  bronze_strict_data_quality:
+    description: Fail the Bronze job when data quality checks find issues
+    default: "true"
+  silver_input_path:
+    description: Silver input directory, normally the Bronze output directory
+    default: /Volumes/main/default/sales/output/bronze
+  silver_output_path:
+    description: Silver Parquet output directory
+    default: /Volumes/main/default/sales/output/silver
+  gold_input_path:
+    description: Gold input directory, normally the Silver output directory
+    default: /Volumes/main/default/sales/output/silver
+  gold_output_path:
+    description: Gold CSV output directory
+    default: /Volumes/main/default/sales/output/gold
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-ecdef34f-072b.cloud.databricks.com
+    variables:
+      bronze_input_path: /Volumes/main/default/sales/input
+      bronze_output_path: /Volumes/main/default/sales/output/bronze
+      bronze_errors_path: /Volumes/main/default/sales/output/errors
+      bronze_strict_data_quality: "true"
+      silver_input_path: /Volumes/main/default/sales/output/bronze
+      silver_output_path: /Volumes/main/default/sales/output/silver
+      gold_input_path: /Volumes/main/default/sales/output/silver
+      gold_output_path: /Volumes/main/default/sales/output/gold
