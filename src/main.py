@@ -1,5 +1,5 @@
 # Future method implementation
-def main(argv: Sequence[str] | None = None):
+def main():
     pass
 
 if __name__ == "__main__":
