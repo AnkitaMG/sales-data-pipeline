@@ -1,4 +1,5 @@
 """Data quality checks for the sales data pipeline."""
+
 import logging
 from typing import List
 

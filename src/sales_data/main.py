@@ -8,6 +8,7 @@ from sales_data.transformations.silver_transform import run_silver_transformatio
 from sales_data.validation.data_quality import run_data_quality_checks
 from sales_data.utils.logger import setup_logger
 
+
 def _parse_bool(value: str) -> bool:
     """Parse a command-line boolean value."""
     normalized = value.strip().lower()
@@ -62,7 +63,6 @@ def main(argv: Sequence[str] | None = None):
 
     logger = setup_logger()
     spark = get_spark_session()
-
 
     try:
         if args.job == "bronze":
