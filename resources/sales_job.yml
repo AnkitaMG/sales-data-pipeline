@@ -1,0 +1,142 @@
+resources:
+  jobs:
+
+    # CHILD JOB 1: BRONZE
+    bronze_job:
+      name: sales-bronze-job
+      parameters:
+        - name: bronze_input_path
+          default: ${var.bronze_input_path}
+        - name: bronze_output_path
+          default: ${var.bronze_output_path}
+        - name: bronze_errors_path
+          default: ${var.bronze_errors_path}
+        - name: strict_data_quality
+          default: ${var.bronze_strict_data_quality}
+
+      tasks:
+        - task_key: bronze_ingestion
+
+          environment_key: default
+
+          python_wheel_task:
+            package_name: sales-data-pipeline
+            entry_point: sales-data
+            parameters:
+              - --job
+              - bronze
+              - --input-path
+              - "{{job.parameters.bronze_input_path}}"
+              - --output-path
+              - "{{job.parameters.bronze_output_path}}"
+              - --errors-path
+              - "{{job.parameters.bronze_errors_path}}"
+              - --strict-data-quality
+              - "{{job.parameters.strict_data_quality}}"
+
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "2"
+            dependencies:
+              - ../dist/*.whl
+
+    # CHILD JOB 2: SILVER
+    silver_job:
+      name: sales-silver-job
+      parameters:
+        - name: silver_input_path
+          default: ${var.silver_input_path}
+        - name: silver_output_path
+          default: ${var.silver_output_path}
+
+      tasks:
+        - task_key: silver_transformation
+
+          environment_key: default
+
+          python_wheel_task:
+            package_name: sales-data-pipeline
+            entry_point: sales-data
+            parameters:
+              - --job
+              - silver
+              - --input-path
+              - "{{job.parameters.silver_input_path}}"
+              - --output-path
+              - "{{job.parameters.silver_output_path}}"
+
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "2"
+            dependencies:
+              - ../dist/*.whl
+
+    # CHILD JOB 3: GOLD
+    gold_job:
+      name: sales-gold-job
+      parameters:
+        - name: gold_input_path
+          default: ${var.gold_input_path}
+        - name: gold_output_path
+          default: ${var.gold_output_path}
+
+      tasks:
+        - task_key: gold_transformation
+
+          environment_key: default
+
+          python_wheel_task:
+            package_name: sales-data-pipeline
+            entry_point: sales-data
+            parameters:
+              - --job
+              - gold
+              - --input-path
+              - "{{job.parameters.gold_input_path}}"
+              - --output-path
+              - "{{job.parameters.gold_output_path}}"
+
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "2"
+            dependencies:
+              - ../dist/*.whl
+
+    # PARENT JOB: ORCHESTRATOR
+    sales_pipeline:
+      name: sales-data-pipeline
+      parameters:
+        - name: strict_data_quality
+          default: ${var.bronze_strict_data_quality}
+
+      tasks:
+
+        - task_key: run_bronze_job
+          run_job_task:
+            job_id: ${resources.jobs.bronze_job.id}
+            job_parameters:
+              bronze_input_path: ${var.bronze_input_path}
+              bronze_output_path: ${var.bronze_output_path}
+              bronze_errors_path: ${var.bronze_errors_path}
+              strict_data_quality: "{{job.parameters.strict_data_quality}}"
+
+        - task_key: run_silver_job
+          depends_on:
+            - task_key: run_bronze_job
+          run_job_task:
+            job_id: ${resources.jobs.silver_job.id}
+            job_parameters:
+              silver_input_path: ${var.silver_input_path}
+              silver_output_path: ${var.silver_output_path}
+
+        - task_key: run_gold_job
+          depends_on:
+            - task_key: run_silver_job
+          run_job_task:
+            job_id: ${resources.jobs.gold_job.id}
+            job_parameters:
+              gold_input_path: ${var.gold_input_path}
+              gold_output_path: ${var.gold_output_path}

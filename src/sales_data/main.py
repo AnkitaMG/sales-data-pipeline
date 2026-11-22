@@ -54,6 +54,9 @@ def main(argv: Sequence[str] | None = None):
             "true/false (default: true); use --no-strict-data-quality to continue."
         ),
     )
+    parser.add_argument("--dataset-one")
+    parser.add_argument("--dataset-two")
+    parser.add_argument("--dataset-three")
     parser.add_argument(
         "--no-strict-data-quality",
         dest="strict_data_quality",
